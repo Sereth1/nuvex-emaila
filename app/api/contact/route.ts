@@ -11,12 +11,12 @@ const corsHeaders = {
 
 // ✅ Nodemailer transporter
 const transporter = nodemailer.createTransport({
-  host: "box5408.bluehost.com", // This is your Bluehost SMTP server
-  port: 465, // Using SSL
-  secure: true, // Required for port 465
+  host: "box5408.bluehost.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: "info@nuvexbiotech.com", // Your full email address
-    pass: process.env.EMAIL_PASSWORD, // Your actual password or from .env
+    user: process.env.EMAIL_USER, // ✅ Use env var here too
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 

@@ -11,11 +11,9 @@ const corsHeaders = {
 
 // ✅ Nodemailer transporter
 const transporter = nodemailer.createTransport({
-  host: "box5408.bluehost.com",
-  port: 465,
-  secure: true,
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, // ✅ Use env var here too
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
 });

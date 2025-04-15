@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { adminEmailTemplate, userEmailTemplate } from "./email-template";
 
+const ALLOWED_ORIGIN = "https://nuvexbiotech.com";
+
 // ✅ Reusable CORS headers
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, x-api-key, authorization",
 };
@@ -23,11 +25,20 @@ export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
-// ✅ Handle actual POST request
+// ✅ Handle POST
 export async function POST(request: Request) {
   try {
-    const apiKey = request.headers.get("x-api-key");
+    // ✅ Check request origin
+    const origin = request.headers.get("origin") || "";
+    if (origin !== ALLOWED_ORIGIN) {
+      return NextResponse.json(
+        { error: "Forbidden: Invalid origin" },
+        { status: 403, headers: corsHeaders }
+      );
+    }
 
+    // ✅ Check API key
+    const apiKey = request.headers.get("x-api-key");
     if (!apiKey || apiKey !== process.env.API_KEY) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -35,6 +46,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // ✅ Extract & validate fields
     const { firstName, lastName, email, message, phone, companyName } =
       await request.json();
 
@@ -45,6 +57,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // ✅ Mail options
     const adminMailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
@@ -66,6 +79,7 @@ export async function POST(request: Request) {
       html: userEmailTemplate(firstName, lastName),
     };
 
+    // ✅ Send both emails
     await transporter.sendMail(adminMailOptions);
     await transporter.sendMail(userMailOptions);
 

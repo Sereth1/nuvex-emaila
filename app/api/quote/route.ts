@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { adminQuoteTemplate, userQuoteTemplate } from "./email-template";
 
+const ALLOWED_ORIGIN = "https://nuvexbiotech.com";
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -16,7 +18,7 @@ export async function OPTIONS() {
     {},
     {
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers":
           "Content-Type, x-api-key, authorization",
@@ -27,6 +29,23 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
+    // 🔐 Origin check
+    const origin = request.headers.get("origin") || "";
+    if (origin !== ALLOWED_ORIGIN) {
+      return NextResponse.json(
+        { error: "Forbidden: Invalid origin" },
+        {
+          status: 403,
+          headers: {
+            "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, x-api-key, authorization",
+          },
+        }
+      );
+    }
+
     const apiKey = request.headers.get("x-api-key");
 
     if (!apiKey || apiKey !== process.env.API_KEY) {
@@ -35,7 +54,7 @@ export async function POST(request: Request) {
         {
           status: 401,
           headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers":
               "Content-Type, x-api-key, authorization",
@@ -53,7 +72,6 @@ export async function POST(request: Request) {
     const timeline = formData.get("timeline") as string;
     const budgetRange = formData.get("budgetRange") as string;
 
-    // Only process files if the "files" field exists at all
     const filesFieldExists = [...formData.keys()].includes("files");
     const files = filesFieldExists ? (formData.getAll("files") as File[]) : [];
     const fileNames = files.map((file) => file.name);
@@ -77,7 +95,7 @@ export async function POST(request: Request) {
         {
           status: 400,
           headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers":
               "Content-Type, x-api-key, authorization",
@@ -117,7 +135,7 @@ export async function POST(request: Request) {
       {
         status: 200,
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
           "Access-Control-Allow-Methods": "POST, OPTIONS",
           "Access-Control-Allow-Headers":
             "Content-Type, x-api-key, authorization",
@@ -131,7 +149,7 @@ export async function POST(request: Request) {
       {
         status: 500,
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
           "Access-Control-Allow-Methods": "POST, OPTIONS",
           "Access-Control-Allow-Headers":
             "Content-Type, x-api-key, authorization",
